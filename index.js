@@ -29,12 +29,46 @@ async function run() {
         // Send a ping to confirm a successful connection
 
         const productCollection = client.db('MERN').collection('products')
+        const addToCartCollection = client.db('MERN').collection('addToCart')
 
         app.get('/products', async (req, res) => {
             const data = productCollection.find();
             const result = await data.toArray()
             res.send(result)
         })
+
+        // post add to cart data data
+        app.post('/addtocart', async (req, res) => {
+
+            const data = addToCartCollection.find();
+            const previousAddToCart = await data.toArray()
+
+            const user = req.body.user;
+            const itemId = req.body.itemId;
+            const docs = req.body;
+
+            const oldUser = previousAddToCart.find(p => p.user === user)
+            console.log("olduser", oldUser);
+
+
+            // if (oldUser){
+
+            //     const Update
+            // }
+
+
+            const result = await addToCartCollection.insertOne(docs)
+            res.send(result)
+
+        })
+
+        // get add to cart data
+        app.get('/addtocart', async (req, res) => {
+            const data = addToCartCollection.find();
+            const result = await data.toArray()
+            res.send(result)
+        })
+
 
 
 
