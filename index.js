@@ -38,34 +38,83 @@ async function run() {
         })
 
         // post add to cart data data
+        // app.post('/addtocart', async (req, res) => {
+
+        //     const data = addToCartCollection.find();
+        //     const previousAddToCart = await data.toArray()
+
+        //     const user = req.body.user;
+        //     const itemId = req.body.itemId;
+        //     const docs = {
+        //         user,
+        //         itemId
+        //     }
+
+        //     const oldUser = previousAddToCart.find(p => p.user === user)
+        //     console.log("olduser", oldUser);
+
+
+        //     if (oldUser) {
+        //         const oldItemIds = oldUser.itemId
+        //         oldItemIds.push(itemId)
+        //         const filter = { _id: oldUser._id }
+        //         const updateAddToCart = {
+        //             $set: {
+        //                 itemId: oldItemIds,
+        //                 user: oldUser.user
+        //             }
+        //         }
+        //         const options = { upsert: true }
+        //         const result = await addToCartCollection.updateOne(filter, updateAddToCart, options)
+        //         console.log("I am result1", result);
+        //         res.send(result)
+        //     }
+
+        //     else {
+        //         const result = await addToCartCollection.insertOne(docs)
+        //         console.log("I am result2", result);
+
+        //         // res.send(result)
+        //     }
+
+
+
+        // })
+
         app.post('/addtocart', async (req, res) => {
-
-            const data = addToCartCollection.find();
-            const previousAddToCart = await data.toArray()
-
-            const user = req.body.user;
-            const itemId = req.body.itemId;
-            const docs = req.body;
-
-            const oldUser = previousAddToCart.find(p => p.user === user)
-            console.log("olduser", oldUser);
-
-
-            // if (oldUser){
-
-            //     const Update
-            // }
-
-
-            const result = await addToCartCollection.insertOne(docs)
+            const item = req.body;
+            console.log(item);
+            const result = await addToCartCollection.insertOne(item);
             res.send(result)
-
         })
 
+
+        // app.get('/carts', verifyJwt, async (req, res) => {
+        //     const email = req.query.email
+        //     console.log(email);
+        //     const query = { email: email }
+
+
+        //     if (!email) {
+        //         res.send([])
+        //     }
+
+
+        //     const decodedEmail = req.decoded.email;
+        //     if (email !== decodedEmail) {
+        //         return res.status(403).send({ error: true, message: "Forbidden Access" })
+        //     }
+
+        //     const result = await cartCollection.find(query).toArray();
+        //     res.send(result)
+        // })
+
         // get add to cart data
+
         app.get('/addtocart', async (req, res) => {
-            const data = addToCartCollection.find();
-            const result = await data.toArray()
+            const email = req.query.email;
+            const query={email:email};
+            const result = await addToCartCollection.find(query).toArray()
             res.send(result)
         })
 
