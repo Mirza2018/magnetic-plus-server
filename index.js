@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 
 const port = process.env.PORT || 5000;
@@ -29,7 +29,8 @@ async function run() {
         // Send a ping to confirm a successful connection
 
         const productCollection = client.db('MERN').collection('products')
-        const addToCartCollection = client.db('MERN').collection('addToCart')
+        const addToCartCollection = client.db('MERN').collection('carts')
+        const userCollection = client.db('MERN').collection('users')
 
         app.get('/products', async (req, res) => {
             const data = productCollection.find();
@@ -83,7 +84,6 @@ async function run() {
 
         app.post('/addtocart', async (req, res) => {
             const item = req.body;
-            console.log(item);
             const result = await addToCartCollection.insertOne(item);
             res.send(result)
         })
@@ -113,11 +113,25 @@ async function run() {
 
         app.get('/addtocart', async (req, res) => {
             const email = req.query.email;
-            const query={email:email};
+            const query = { email: email };
             const result = await addToCartCollection.find(query).toArray()
             res.send(result)
         })
 
+        // Delete from add to cart add to cart
+        app.delete('/addtocart/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await addToCartCollection.deleteOne(query);
+            res.send(result)
+        })
+
+        //user related api
+        app.post('/users', async (req, res) => {
+            const user = req.body
+            const result = await userCollection.insertOne(user)
+            req.send(result);
+        })
 
 
 
