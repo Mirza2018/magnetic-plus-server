@@ -129,10 +129,19 @@ async function run() {
         //user related api
         app.post('/users', async (req, res) => {
             const user = req.body
+            const query = { email: user.email }
+            const existingUser = await userCollection.findOne(query);
+            if (existingUser) {
+                return res.send({ message: "User Alrady Exists", InsertedId: null })
+            }
             const result = await userCollection.insertOne(user)
-            req.send(result);
+            res.send(result);
         })
-
+        //Users get
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result)
+        })
 
 
         await client.db("admin").command({ ping: 1 });
