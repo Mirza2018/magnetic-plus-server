@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const jwt=require('jsonwebtoken')
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 
@@ -32,6 +32,36 @@ async function run() {
         const productCollection = client.db('MERN').collection('products')
         const addToCartCollection = client.db('MERN').collection('carts')
         const userCollection = client.db('MERN').collection('users')
+
+
+        //Jwt related Api
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token })
+        })
+
+        //Varify token midelware
+        const varifyToken = (req, res, next) => {
+            console.log("Inside varify token", req.headers.authorization)
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: 'forbidden access' })
+            }
+            const token = req.headers.authorization.split(' ')[1]
+            // if(!token){
+            //     return res.status(401).send({message:'forbidden access'})
+            // }
+            // next();
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: 'forbidden access' })
+                }
+                req.decoded = decoded;
+                next();
+            })
+        }
+
+
 
         app.get('/products', async (req, res) => {
             const data = productCollection.find();
@@ -139,7 +169,8 @@ async function run() {
             res.send(result);
         })
         //Users get
-        app.get('/users', async (req, res) => {
+        app.get('/users', varifyToken, async (req, res) => {
+
             const result = await userCollection.find().toArray();
             res.send(result)
         })
@@ -150,6 +181,22 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query);
             res.send(result)
+        })
+
+        //get admin check
+        app.get('/user/admin/:email', varifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'unauthoraze access' })
+            }
+            const query = { email: email }
+            const user = await userCollection.findOne(query);
+            let admin = false;
+            if (user) {
+                admin = user?.role === 'admin';
+
+            }
+            res.send({ admin });
         })
 
         //user admin role implement
@@ -165,6 +212,8 @@ async function run() {
             const result = await userCollection.updateOne(filter, updatedDoc)
             res.send(result)
         })
+
+
 
 
         await client.db("admin").command({ ping: 1 });
