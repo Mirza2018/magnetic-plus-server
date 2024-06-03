@@ -32,6 +32,7 @@ async function run() {
         const productCollection = client.db('MERN').collection('products')
         const addToCartCollection = client.db('MERN').collection('carts')
         const userCollection = client.db('MERN').collection('users')
+        const itemCollection = client.db('MERN').collection('items')
 
 
         //Jwt related Api
@@ -45,7 +46,7 @@ async function run() {
         const varifyToken = (req, res, next) => {
             console.log("Inside varify token", req.headers.authorization)
             if (!req.headers.authorization) {
-                return res.status(401).send({ message: 'forbidden access' })
+                return res.status(401).send({ message: 'Unauthorized access' })
             }
             const token = req.headers.authorization.split(' ')[1]
             // if(!token){
@@ -54,11 +55,22 @@ async function run() {
             // next();
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
                 if (err) {
-                    return res.status(401).send({ message: 'forbidden access' })
+                    return res.status(401).send({ message: 'Unauthorized access' })
                 }
                 req.decoded = decoded;
                 next();
             })
+        }
+        //use varify admin after varify token
+        const varifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isAdmin = user?.role === 'admin'
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
         }
 
 
@@ -68,6 +80,21 @@ async function run() {
             const result = await data.toArray()
             res.send(result)
         })
+
+        ////get items
+
+        app.get('/items', async (req, res) => {
+            const result = await itemCollection.find().toArray()
+            res.send(result)
+        })
+        app.post('/items', async (req, res) => {
+            const item = req.body;
+            const result= await itemCollection.insertOne(item);
+            res.send(result)
+        })
+
+
+
 
         // post add to cart data data
         // app.post('/addtocart', async (req, res) => {
@@ -169,14 +196,14 @@ async function run() {
             res.send(result);
         })
         //Users get
-        app.get('/users', varifyToken, async (req, res) => {
+        app.get('/users', varifyToken, varifyAdmin, async (req, res) => {
 
             const result = await userCollection.find().toArray();
             res.send(result)
         })
         //user delete
 
-        app.delete('/users/:id', async (req, res) => {
+        app.delete('/users/:id', varifyToken, varifyAdmin, async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query);
@@ -184,10 +211,10 @@ async function run() {
         })
 
         //get admin check
-        app.get('/user/admin/:email', varifyToken, async (req, res) => {
+        app.get('/users/admin/:email', varifyToken, async (req, res) => {
             const email = req.params.email;
             if (email !== req.decoded.email) {
-                return res.status(403).send({ message: 'unauthoraze access' })
+                return res.status(403).send({ message: 'Forbidden access' })
             }
             const query = { email: email }
             const user = await userCollection.findOne(query);
@@ -200,7 +227,7 @@ async function run() {
         })
 
         //user admin role implement
-        app.patch('/users/admin/:id', async (req, res) => {
+        app.patch('/users/admin/:id', varifyToken, varifyAdmin, async (req, res) => {
 
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
