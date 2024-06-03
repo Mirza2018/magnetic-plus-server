@@ -44,15 +44,11 @@ async function run() {
 
         //Varify token midelware
         const varifyToken = (req, res, next) => {
-            console.log("Inside varify token", req.headers.authorization)
             if (!req.headers.authorization) {
                 return res.status(401).send({ message: 'Unauthorized access' })
             }
             const token = req.headers.authorization.split(' ')[1]
-            // if(!token){
-            //     return res.status(401).send({message:'forbidden access'})
-            // }
-            // next();
+
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
                 if (err) {
                     return res.status(401).send({ message: 'Unauthorized access' })
@@ -87,12 +83,43 @@ async function run() {
             const result = await itemCollection.find().toArray()
             res.send(result)
         })
-        app.post('/items', async (req, res) => {
-            const item = req.body;
-            const result= await itemCollection.insertOne(item);
+
+        /// Get single Item
+        app.get('/item/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await itemCollection.findOne(query);
             res.send(result)
         })
 
+        app.post('/items', varifyToken, varifyAdmin, async (req, res) => {
+            const item = req.body;
+            const result = await itemCollection.insertOne(item);
+            res.send(result)
+        })
+        ///Item delete
+        app.delete('/items/:id', varifyToken, varifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await itemCollection.deleteOne(query);
+            res.send(result)
+        })
+        //Item Patch
+        app.patch('/item/:id', varifyToken, varifyAdmin, async (req, res) => {
+            const item = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    name:item.name,
+                    price:item.price,
+                    desc:item.desc,
+                    categories:item.categories,
+                    img:item.img
+                }}
+            const result = await itemCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+            })
 
 
 
