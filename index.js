@@ -33,6 +33,7 @@ async function run() {
         const addToCartCollection = client.db('MERN').collection('carts')
         const userCollection = client.db('MERN').collection('users')
         const itemCollection = client.db('MERN').collection('items')
+        const categoriesCollection = client.db('MERN').collection('categories')
 
 
         //Jwt related Api
@@ -76,7 +77,11 @@ async function run() {
             const result = await data.toArray()
             res.send(result)
         })
-
+        ////Get categories
+        app.get('/categories', async (req, res) => {
+            const result = await categoriesCollection.find().toArray()
+            res.send(result)
+        })
         ////get items
 
         app.get('/items', async (req, res) => {
@@ -111,15 +116,16 @@ async function run() {
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
                 $set: {
-                    name:item.name,
-                    price:item.price,
-                    desc:item.desc,
-                    categories:item.categories,
-                    img:item.img
-                }}
+                    name: item.name,
+                    price: item.price,
+                    desc: item.desc,
+                    categories: item.categories,
+                    img: item.img
+                }
+            }
             const result = await itemCollection.updateOne(filter, updatedDoc)
             res.send(result)
-            })
+        })
 
 
 
