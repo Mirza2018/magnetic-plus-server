@@ -172,15 +172,85 @@ async function run() {
 
 
         // })
-
-        app.post('/addtocart', async (req, res) => {
-            const item = req.body;
-            const result = await addToCartCollection.insertOne(item);
+        app.get('/addtocart', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await addToCartCollection.find(query).toArray()
             res.send(result)
         })
 
 
-        // app.get('/carts', verifyJwt, async (req, res) => {
+//Add to cart duplicate order handle update and post
+
+        app.post('/addtocart', async (req, res) => {
+            const item = req.body;
+
+
+            const personEmail = item.email;
+            const query = { email: personEmail };
+            const personOrders = await addToCartCollection.find(query).toArray()
+
+        
+
+            if (personOrders.length == 0) {
+                const result = await addToCartCollection.insertOne(item);
+    
+                res.send(result)
+            }
+            else {
+       
+                const findDuplicateOrder = personOrders.find(order => order.ItemId === item.ItemId)
+
+                if (findDuplicateOrder == undefined) {
+                    const result = await addToCartCollection.insertOne(item);
+          
+                    res.send(result)
+
+                } else {
+                    console.log(findDuplicateOrder == undefined);
+
+                    const id = findDuplicateOrder._id
+
+                    const filter = { _id: new ObjectId(id) }
+
+                    if (findDuplicateOrder.quantity) {
+                        let quantity = findDuplicateOrder.quantity + 1;
+                    
+                        const updatedDoc = {
+                            $set: {
+                                quantity: quantity
+                            }
+                        }
+                        const result = await addToCartCollection.updateOne(filter, updatedDoc)
+                        res.send(result)
+
+                    } else {
+                        let quantity = 2;
+                    
+                        const updatedDoc = {
+                            $set: {
+                                quantity: quantity
+                            }
+                        }
+                        const result = await addToCartCollection.updateOne(filter, updatedDoc)
+                        res.send(result)
+
+                    }
+                }
+
+
+
+
+
+
+
+            }
+
+
+
+
+        })
+
         //     const email = req.query.email
         //     console.log(email);
         //     const query = { email: email }
@@ -202,12 +272,7 @@ async function run() {
 
         // get add to cart data
 
-        app.get('/addtocart', async (req, res) => {
-            const email = req.query.email;
-            const query = { email: email };
-            const result = await addToCartCollection.find(query).toArray()
-            res.send(result)
-        })
+
 
         // Delete from add to cart add to cart
         app.delete('/addtocart/:id', async (req, res) => {
