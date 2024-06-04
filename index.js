@@ -175,12 +175,32 @@ async function run() {
         app.get('/addtocart', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
+            const allItem = await itemCollection.find().toArray()
             const result = await addToCartCollection.find(query).toArray()
-            res.send(result)
+            // console.log(result);
+            let cartItems = [];
+            const resultmap = result.map(i => {
+                let cartItem = allItem.find(a => a._id == i.ItemId)
+                let modifiedCartItem = {
+                    _id: i._id,
+                    name: cartItem.name,
+                    img: cartItem.img,
+                    price: cartItem.price,
+                    quantity: i.quantity || 1,
+                }
+                cartItems.push(modifiedCartItem)
+            })
+
+
+
+
+            // console.log(cartItems);
+
+            res.send(cartItems)
         })
 
 
-//Add to cart duplicate order handle update and post
+        //Add to cart duplicate order handle update and post
 
         app.post('/addtocart', async (req, res) => {
             const item = req.body;
@@ -190,20 +210,20 @@ async function run() {
             const query = { email: personEmail };
             const personOrders = await addToCartCollection.find(query).toArray()
 
-        
+
 
             if (personOrders.length == 0) {
                 const result = await addToCartCollection.insertOne(item);
-    
+
                 res.send(result)
             }
             else {
-       
+
                 const findDuplicateOrder = personOrders.find(order => order.ItemId === item.ItemId)
 
                 if (findDuplicateOrder == undefined) {
                     const result = await addToCartCollection.insertOne(item);
-          
+
                     res.send(result)
 
                 } else {
@@ -215,7 +235,7 @@ async function run() {
 
                     if (findDuplicateOrder.quantity) {
                         let quantity = findDuplicateOrder.quantity + 1;
-                    
+
                         const updatedDoc = {
                             $set: {
                                 quantity: quantity
@@ -226,7 +246,7 @@ async function run() {
 
                     } else {
                         let quantity = 2;
-                    
+
                         const updatedDoc = {
                             $set: {
                                 quantity: quantity
@@ -237,18 +257,7 @@ async function run() {
 
                     }
                 }
-
-
-
-
-
-
-
             }
-
-
-
-
         })
 
         //     const email = req.query.email
