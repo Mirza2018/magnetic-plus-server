@@ -35,6 +35,7 @@ async function run() {
         const itemCollection = client.db('MERN').collection('items')
         const orderCollection = client.db('MERN').collection('orders')
         const categoriesCollection = client.db('MERN').collection('categories')
+        const deliveredCollection = client.db('MERN').collection('delivered')
 
 
         //Jwt related Api
@@ -344,7 +345,7 @@ async function run() {
             res.send(result)
         })
 
- 
+
 
 
         // Order Post 
@@ -353,13 +354,55 @@ async function run() {
             const result = await orderCollection.insertOne(order);
             res.send(result)
         })
-        //Order Get
-        app.get('/orders',varifyToken, async (req, res) => {
+        //Order Get user
+        app.get('/orders', varifyToken, async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
             const user = await orderCollection.find(query).toArray()
             res.send(user);
         })
+        //Order get admin
+        app.get('/allOrders', varifyToken, varifyAdmin, async (req, res) => {
+
+            const result = await orderCollection.find().toArray();
+            res.send(result)
+        })
+
+        //Admin Status change Orders
+
+        app.patch('/orders/admin/:id', varifyToken, varifyAdmin, async (req, res) => {
+
+            const id = req.params.id;
+            let status = req.query.status;
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: {
+                    status: status
+                }
+            }
+            const result = await orderCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+        })
+
+
+        //Admin Delete  Orders
+
+        app.delete('/orders/admin/:id', varifyToken, varifyAdmin, async (req, res) => {
+            const id = req.params.id
+
+            const allOrder = await orderCollection.find().toArray()
+
+            const finalOrder = allOrder.find(order => order._id = id);
+
+            const preResult = await deliveredCollection.insertOne(finalOrder);
+            const query = { _id: new ObjectId(id) }
+            const result = await orderCollection.deleteOne(query);
+            res.send({result,preResult})
+        })
+
+
+
 
 
 
