@@ -33,6 +33,7 @@ async function run() {
         const addToCartCollection = client.db('MERN').collection('carts')
         const userCollection = client.db('MERN').collection('users')
         const itemCollection = client.db('MERN').collection('items')
+        const orderCollection = client.db('MERN').collection('orders')
         const categoriesCollection = client.db('MERN').collection('categories')
 
 
@@ -190,10 +191,6 @@ async function run() {
                 }
                 cartItems.push(modifiedCartItem)
             })
-
-
-
-
             // console.log(cartItems);
 
             res.send(cartItems)
@@ -346,6 +343,24 @@ async function run() {
             const result = await userCollection.updateOne(filter, updatedDoc)
             res.send(result)
         })
+
+ 
+
+
+        // Order Post 
+        app.post('/orders', varifyToken, async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result)
+        })
+        //Order Get
+        app.get('/orders',varifyToken, async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const user = await orderCollection.find(query).toArray()
+            res.send(user);
+        })
+
 
 
 
