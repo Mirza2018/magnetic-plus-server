@@ -44,7 +44,7 @@ async function run() {
         //Jwt related Api
         app.post('/jwt', async (req, res) => {
             const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10d' });
             res.send({ token })
         })
 
@@ -418,27 +418,40 @@ async function run() {
 
         })
 
+        app.get('/bestProducts', async (req, res) => {
+            const result = await bestCollection.find().toArray()
+            res.send(result)
+        })
+
         /////popular Products
 
-        app.post('/popullarProducts', async (req, res) => {
+        app.post('/popularProducts', async (req, res) => {
             const productId = req.body;
-            await bestCollection.deleteMany({});
+            await popularCollection.deleteMany({});
             const data = { data: productId }
             const result = await popularCollection.insertOne(data)
             res.send(result)
 
         })
+
+        app.get('/popularProducts', async (req, res) => {
+            const result = await popularCollection.find().toArray()
+            res.send(result)
+        })
         /////Top selling Products
 
         app.post('/topProducts', async (req, res) => {
             const productId = req.body;
-            await bestCollection.deleteMany({});
+            await topCollection.deleteMany({});
             const data = { data: productId }
             const result = await topCollection.insertOne(data)
             res.send(result)
         })
 
-
+        app.get('/topProducts', async (req, res) => {
+            const result = await topCollection.find().toArray()
+            res.send(result)
+        })
 
 
         await client.db("admin").command({ ping: 1 });
