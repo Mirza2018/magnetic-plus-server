@@ -36,6 +36,9 @@ async function run() {
         const orderCollection = client.db('MERN').collection('orders')
         const categoriesCollection = client.db('MERN').collection('categories')
         const deliveredCollection = client.db('MERN').collection('delivered')
+        const bestCollection = client.db('MERN').collection('best')
+        const topCollection = client.db('MERN').collection('top')
+        const popularCollection = client.db('MERN').collection('popular')
 
 
         //Jwt related Api
@@ -301,7 +304,9 @@ async function run() {
             res.send(result);
         })
         //Users get
-        app.get('/users', varifyToken, varifyAdmin, async (req, res) => {
+
+
+        app.get('/users', varifyToken, async (req, res) => {
 
             const result = await userCollection.find().toArray();
             res.send(result)
@@ -398,12 +403,40 @@ async function run() {
             const preResult = await deliveredCollection.insertOne(finalOrder);
             const query = { _id: new ObjectId(id) }
             const result = await orderCollection.deleteOne(query);
-            res.send({result,preResult})
+            res.send({ result, preResult })
         })
 
 
+        /////Best Products
 
+        app.post('/bestProducts', async (req, res) => {
+            const productId = req.body;
+            await bestCollection.deleteMany({});
+            const data = { data: productId }
+            const result = await bestCollection.insertOne(data)
+            res.send(result)
 
+        })
+
+        /////popular Products
+
+        app.post('/popullarProducts', async (req, res) => {
+            const productId = req.body;
+            await bestCollection.deleteMany({});
+            const data = { data: productId }
+            const result = await popularCollection.insertOne(data)
+            res.send(result)
+
+        })
+        /////Top selling Products
+
+        app.post('/topProducts', async (req, res) => {
+            const productId = req.body;
+            await bestCollection.deleteMany({});
+            const data = { data: productId }
+            const result = await topCollection.insertOne(data)
+            res.send(result)
+        })
 
 
 
