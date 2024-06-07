@@ -366,6 +366,18 @@ async function run() {
             const user = await orderCollection.find(query).toArray()
             res.send(user);
         })
+        ///User Order History
+
+        app.get('/userOrderHistory', varifyToken, async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const user = await deliveredCollection.find(query).toArray()
+            res.send(user);
+        })
+
+
+
+
         //Order get admin
         app.get('/allOrders', varifyToken, varifyAdmin, async (req, res) => {
 
@@ -406,6 +418,12 @@ async function run() {
             res.send({ result, preResult })
         })
 
+
+        ////Admin get order
+        app.get('/orderHistory', varifyToken, varifyAdmin, async (req, res) => {
+            const result = await deliveredCollection.find().toArray()
+            res.send(result)
+        })
 
         /////Best Products
 
