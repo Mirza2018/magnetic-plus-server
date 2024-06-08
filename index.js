@@ -135,7 +135,7 @@ async function run() {
 
 
 
-      
+
         app.get('/addtocart', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
@@ -204,7 +204,7 @@ async function run() {
                         const result = await addToCartCollection.updateOne(filter, updatedDoc)
                         res.send(result)
 
-                    } 
+                    }
                     else {
                         let quantity = 2;
 
@@ -221,26 +221,7 @@ async function run() {
             }
         })
 
-        //     const email = req.query.email
-        //     console.log(email);
-        //     const query = { email: email }
 
-
-        //     if (!email) {
-        //         res.send([])
-        //     }
-
-
-        //     const decodedEmail = req.decoded.email;
-        //     if (email !== decodedEmail) {
-        //         return res.status(403).send({ error: true, message: "Forbidden Access" })
-        //     }
-
-        //     const result = await cartCollection.find(query).toArray();
-        //     res.send(result)
-        // })
-
-        // get add to cart data
 
 
 
@@ -350,7 +331,7 @@ async function run() {
         app.patch('/orders/admin/:id', varifyToken, varifyAdmin, async (req, res) => {
 
             const id = req.params.id;
-            let status = req.query.status;
+            const status = req.query.status;
             const filter = { _id: new ObjectId(id) };
 
             const updatedDoc = {
@@ -370,11 +351,13 @@ async function run() {
 
             const allOrder = await orderCollection.find().toArray()
 
-            const finalOrder = allOrder.find(order => order._id = id);
+            const finalOrder = allOrder.find(order => order._id == id);
 
-            const preResult = await deliveredCollection.insertOne(finalOrder);
-            const query = { _id: new ObjectId(id) }
-            const result = await orderCollection.deleteOne(query);
+
+            const query = { _id: new ObjectId(finalOrder._id) }
+            const preResult = await orderCollection.deleteOne(query);
+            // console.log(id, finalOrder);
+            const result = await deliveredCollection.insertOne(finalOrder);
             res.send({ result, preResult })
         })
 
