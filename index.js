@@ -29,7 +29,8 @@ async function run() {
         await client.connect();
         // Send a ping to confirm a successful connection
 
-        const productCollection = client.db('MERN').collection('products')
+        // const productCollection = client.db('MERN').collection('products')
+
         const addToCartCollection = client.db('MERN').collection('carts')
         const userCollection = client.db('MERN').collection('users')
         const itemCollection = client.db('MERN').collection('items')
@@ -77,11 +78,11 @@ async function run() {
 
 
 
-        app.get('/products', async (req, res) => {
-            const data = productCollection.find();
-            const result = await data.toArray()
-            res.send(result)
-        })
+        // app.get('/products', async (req, res) => {
+        //     const data = productCollection.find();
+        //     const result = await data.toArray()
+        //     res.send(result)
+        // })
         ////Get categories
         app.get('/categories', async (req, res) => {
             const result = await categoriesCollection.find().toArray()
@@ -134,49 +135,7 @@ async function run() {
 
 
 
-        // post add to cart data data
-        // app.post('/addtocart', async (req, res) => {
-
-        //     const data = addToCartCollection.find();
-        //     const previousAddToCart = await data.toArray()
-
-        //     const user = req.body.user;
-        //     const itemId = req.body.itemId;
-        //     const docs = {
-        //         user,
-        //         itemId
-        //     }
-
-        //     const oldUser = previousAddToCart.find(p => p.user === user)
-        //     console.log("olduser", oldUser);
-
-
-        //     if (oldUser) {
-        //         const oldItemIds = oldUser.itemId
-        //         oldItemIds.push(itemId)
-        //         const filter = { _id: oldUser._id }
-        //         const updateAddToCart = {
-        //             $set: {
-        //                 itemId: oldItemIds,
-        //                 user: oldUser.user
-        //             }
-        //         }
-        //         const options = { upsert: true }
-        //         const result = await addToCartCollection.updateOne(filter, updateAddToCart, options)
-        //         console.log("I am result1", result);
-        //         res.send(result)
-        //     }
-
-        //     else {
-        //         const result = await addToCartCollection.insertOne(docs)
-        //         console.log("I am result2", result);
-
-        //         // res.send(result)
-        //     }
-
-
-
-        // })
+      
         app.get('/addtocart', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
@@ -228,14 +187,14 @@ async function run() {
                     res.send(result)
 
                 } else {
-                    console.log(findDuplicateOrder == undefined);
+                    // console.log(findDuplicateOrder == undefined);
 
                     const id = findDuplicateOrder._id
 
                     const filter = { _id: new ObjectId(id) }
 
                     if (findDuplicateOrder.quantity) {
-                        let quantity = findDuplicateOrder.quantity + 1;
+                        let quantity = findDuplicateOrder.quantity + item.quantity;
 
                         const updatedDoc = {
                             $set: {
@@ -245,7 +204,8 @@ async function run() {
                         const result = await addToCartCollection.updateOne(filter, updatedDoc)
                         res.send(result)
 
-                    } else {
+                    } 
+                    else {
                         let quantity = 2;
 
                         const updatedDoc = {
@@ -470,6 +430,7 @@ async function run() {
             const result = await topCollection.find().toArray()
             res.send(result)
         })
+
 
 
         await client.db("admin").command({ ping: 1 });
